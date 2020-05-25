@@ -24,7 +24,13 @@ public class MainActivity extends AppCompatActivity {
     int valueD;
     double valueY;
 
-    static int[][] genders = new int[4][4];
+    static int numberOfGender;
+
+    static double[] myResultPercent = new double[4];
+
+    int minIterations;
+
+    static double[][] genders = new double[4][4];
     static int[] deltas = new int[4];
     static double[] probabilities;
     static int randomRange;
@@ -53,22 +59,43 @@ public class MainActivity extends AppCompatActivity {
         valueC = Integer.parseInt(c.getText().toString());
         valueD = Integer.parseInt(d.getText().toString());
         valueY = Double.parseDouble(y.getText().toString());
+        findRandomGen(valueY);
         startLabSolve(valueA,valueB,valueC,valueD,valueY);
     }
 
     public void startLabSolve(int a,int b,int c,int d,double y){
-        findRandomGen(y);
+        System.out.println(Arrays.deepToString(genders));
         int count = 0;
         int[] parametrs = {a,b,c,d};
 
         double startTime = System.nanoTime();
-        while (findDelta(parametrs,y)){
-            count++;
-            makeRoulette();
-            makeCrossAndMutation();
-            if (count >1000) {
-                System.out.println("unsuccessfully ");
-                break;
+        for (int i = 0; i < 10; i++) {
+            //count=0;
+            System.out.println("Number of loop = " + i);
+            System.out.println(Arrays.deepToString(genders));
+            while (findDelta(parametrs,y)){
+                count++;
+                makeRoulette();
+                makeCrossAndMutation();
+                if (count >1000) {
+                    System.out.println("unsuccessfully ");
+                    count = 0;
+                    findRandomGen(valueY);
+                    continue;
+                }
+            }
+
+            if (i==0){
+                minIterations = count;
+                for (int j = 0; j < 4; j++) {
+                    System.out.println(numberOfGender);
+                    myResultPercent[j] = genders[numberOfGender][j];
+                }
+            }else if(count < minIterations){
+                minIterations = count;
+                for (int j = 0; j < 4; j++) {
+                    myResultPercent[j] = genders[numberOfGender][j];
+                }
             }
         }
         double endTime = System.nanoTime();
@@ -76,7 +103,8 @@ public class MainActivity extends AppCompatActivity {
         times /= 1000000;
 
         time.setText(Double.toString(times));
-        iterations.setText(Integer.toString(count));
+        iterations.setText(Integer.toString(minIterations));
+        result.setText(Arrays.toString(myResultPercent));
 
     }
 
@@ -97,10 +125,15 @@ public class MainActivity extends AppCompatActivity {
             }
             deltas[i] = temp;
         }
-        for (int i = 0; i < deltas.length; i++) {
-            deltas[i] = Math.abs(deltas[i]-(int)y);
-            if (deltas[i] == 0){
-                result.setText(Arrays.toString(genders[i]));
+        for (numberOfGender = 0; numberOfGender < deltas.length; numberOfGender++) {
+            deltas[numberOfGender] = Math.abs(deltas[numberOfGender]-(int)y);
+            if (deltas[numberOfGender] == 0){
+                //result.setText(Arrays.toString(genders[numberOfGender]));
+                System.out.println(Arrays.deepToString(genders));
+                for (int j = 0; j < 4; j++) {
+                    myResultPercent[j] = genders[numberOfGender][j];
+                }
+                System.out.println("HERE = " + numberOfGender);
                 return false;
             }
         }
@@ -143,15 +176,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             for (int j = 0; j < genders[first].length/2; j++) {
-                int temp = genders[first][j];
+                double temp = genders[first][j];
                 genders[first][j] = genders[second][j];
                 genders[second][j] = temp;
             }
         }
 
         for (int i = 0; i < probabilities.length; i++) {
-            if (probabilities[i] >= 0.5){
-                genders[i][i]++;
+            if (probabilities[i] >= 0.2){
+                genders[i][i] += 0.01;
                 break;
             }
         }
